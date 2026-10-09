@@ -76,7 +76,7 @@ display(spark.sql("SELECT ticket_id, channel, subject, body FROM support_tickets
 # MAGIC FROM tickets_enriched
 # MAGIC WHERE sentiment = 'negative'
 # MAGIC ORDER BY created_at DESC
-# MAGIC LIMIT 10;
+# MAGIC
 # MAGIC -- SOLUTION-END
 
 # COMMAND ----------
@@ -92,5 +92,5 @@ llm = dbutils.widgets.get("llm_endpoint")
 display(spark.sql(f"""
   SELECT ticket_id, body,
          ai_query('{llm}', concat('In one short sentence, what does the customer want? ', body)) AS intent
-  FROM support_tickets LIMIT 5
+  FROM support_tickets 
 """))

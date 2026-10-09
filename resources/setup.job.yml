@@ -10,11 +10,11 @@ resources:
         - name: schema
           default: ${resources.schemas.sales.name}
         - name: batch
-          default: "0"
+          default: "1"
         - name: orders_per_batch
           default: "5000"
         - name: with_coupon
-          default: "false"
+          default: "true"
       tasks:
         - task_key: generate
           notebook_task:

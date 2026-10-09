@@ -72,21 +72,9 @@ display(spark.sql(f"SHOW GRANTS ON SCHEMA `{catalog}`.`{schema}`"))
 
 # COMMAND ----------
 
-# ABAC stretch: one policy that masks EVERY column tagged `pii`, in every table of the schema.
-# Prerequisites: `pii` is a *governed* tag at the account level (ABAC only references governed tags),
-# and you are on serverless compute or DBR 16.4+.
+spark.sql(f"ALTER TABLE `{catalog}`.`{schema}`.customer_profiles ALTER COLUMN email DROP MASK")
 
-# One generic mask UDF: same contract as any column mask (returns the column's type)
-spark.sql(f"""
-CREATE OR REPLACE FUNCTION mask_pii(val STRING)
-RETURNS STRING
-COMMENT 'Redacts any PII-tagged column for non-exempt principals'
-RETURN '***'
-""")
-
-# Step 2 applied a manual mask on customer_profiles.email — only ONE column mask can resolve
-# per column per user, so unset it and let the policy govern it instead.
-spark.sql(f"ALTER TABLE `{catalog}`.`{schema}`.customer_profiles ALTER COLUMN email UNSET MASK")
+# COMMAND ----------
 
 # Schema-level policy: matches any column carrying the `pii` tag (any value: email, name, ...)
 # and inherits to every table in the schema. Principal-based access lives in TO/EXCEPT, not the UDF.
@@ -95,7 +83,7 @@ CREATE OR REPLACE POLICY pii_mask
 ON SCHEMA `{catalog}`.`{schema}`
 COMMENT 'Mask every pii-tagged column across the schema'
 COLUMN MASK mask_pii
-TO `All Users` EXCEPT `bootcamp_engineers`
+TO `bootcamp_analysts` EXCEPT `bootcamp_engineers`
 FOR TABLES
 MATCH COLUMNS has_column_tag('pii') AS pii_col
 ON COLUMN pii_col
